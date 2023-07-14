@@ -3,6 +3,8 @@ package com.example.departmentservice.service.impl;
 import com.example.departmentservice.constant.StatusConstant;
 import com.example.departmentservice.dto.DepartmentDto;
 import com.example.departmentservice.exception.ExistingItemException;
+import com.example.departmentservice.exception.MissingRequireFieldException;
+import com.example.departmentservice.exception.NotContainException;
 import com.example.departmentservice.exception.ResourceNotFoundException;
 import com.example.departmentservice.mapper.DepartmentMapper;
 import com.example.departmentservice.repository.DepartmentRepository;
@@ -55,10 +57,38 @@ public class DepartmentServiceImpl implements IDepartmentService {
     @Override
     public ResponseEntity<DepartmentDto> getDepartmentByDepartmentCode(String departmentCode) {
         var department = departmentRepository.findByDepartmentCode(departmentCode);
-        if(department.isEmpty()){
+        if (department.isEmpty()) {
             throw new ResourceNotFoundException("department", "departmentCode", departmentCode.hashCode());
         }
         var resultData = departmentMapper.departmentToDepartmentDto(department.get());
+        return new ResponseEntity<>(resultData, HttpStatus.OK);
+    }
+
+    @Override
+    public ResponseEntity<List<DepartmentDto>> getDepartmentListByDepartmentCode(List<String> departmentCodes) {
+        if (departmentCodes.isEmpty()) {
+            throw new MissingRequireFieldException("departmentCodes", departmentCodes.toString());
+        }
+
+        var departments = departmentRepository.findAllByDepartmentCodeIn(departmentCodes);
+        if (departmentCodes.isEmpty()) {
+            throw new ResourceNotFoundException("department", "departmentObject", departments.hashCode());
+        }
+
+        var departmentCodeList = departments.stream().map(x -> {
+            var codes = x.getDepartmentCode();
+            return codes;
+        }).collect(Collectors.toList());
+
+        var checkExisted = departmentCodes.stream().allMatch(x -> departmentCodeList.contains(x));
+        if (!checkExisted) {
+            throw new NotContainException("departmentCode", departmentCodes.toString());
+        }
+
+        var resultData = departments.stream().map(x -> {
+            var departmentDto = departmentMapper.departmentToDepartmentDto(x);
+            return departmentDto;
+        }).collect(Collectors.toList());
         return new ResponseEntity<>(resultData, HttpStatus.OK);
     }
 }

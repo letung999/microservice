@@ -7,4 +7,5 @@ public class StatusConstant {
     public static final String INF_MSG_SUCCESSFULLY = "successfully";
     public static final String DATA_IS_EXIST = "data is exist";
     public static final String DATA_IS_NOT_FOUND = "data is not found";
+    public static final String FIELD_REQUIRED = "missing field required";
 }

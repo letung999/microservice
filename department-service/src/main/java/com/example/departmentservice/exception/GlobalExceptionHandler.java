@@ -47,4 +47,16 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         );
         return new ResponseEntity<>(errorDetails, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @ExceptionHandler(MissingRequireFieldException.class)
+    public static ResponseEntity<ErrorDetails> handleMissingRequiredFiled(MissingRequireFieldException exception, WebRequest webRequest) {
+        ErrorDetails errorDetails = new ErrorDetails(
+                LocalDateTime.now(),
+                webRequest.getDescription(false),
+                exception.getMessage(),
+                StatusConstant.FIELD_REQUIRED
+        );
+        return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
+    }
+
 }

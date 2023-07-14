@@ -12,4 +12,6 @@ public interface IDepartmentService {
     ResponseEntity<List<DepartmentDto>> all(Pageable pageable);
 
     ResponseEntity<DepartmentDto> getDepartmentByDepartmentCode(String departmentCode);
+
+    ResponseEntity<List<DepartmentDto>> getDepartmentListByDepartmentCode(List<String> departmentCodes);
 }

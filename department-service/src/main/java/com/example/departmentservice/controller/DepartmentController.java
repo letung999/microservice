@@ -31,4 +31,9 @@ public class DepartmentController {
     public ResponseEntity<DepartmentDto> getDepartmentByDepartmentCode(@PathVariable String departmentCode) {
         return departmentService.getDepartmentByDepartmentCode(departmentCode);
     }
+
+    @PostMapping(value = "/getDepartmentListByDepartmentCodes")
+    public ResponseEntity<List<DepartmentDto>> getDepartmentListByDepartmentCodes(@RequestBody List<String> departmentCodes){
+        return departmentService.getDepartmentListByDepartmentCode(departmentCodes);
+    }
 }
