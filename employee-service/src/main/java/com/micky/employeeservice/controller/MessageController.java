@@ -1,4 +1,4 @@
-package com.example.departmentservice.controller;
+package com.micky.employeeservice.controller;
 
 
 import org.springframework.beans.factory.annotation.Value;
