@@ -2,12 +2,14 @@ package com.micky.employeeservice.service.impl;
 
 import com.micky.employeeservice.client.APIClient;
 import com.micky.employeeservice.dtos.APIResponseDto;
+import com.micky.employeeservice.dtos.DepartmentDto;
 import com.micky.employeeservice.dtos.EmployeeDto;
 import com.micky.employeeservice.exception.ExistingItemException;
 import com.micky.employeeservice.exception.ResourceNotFoundException;
 import com.micky.employeeservice.mapper.EmployeeMapper;
 import com.micky.employeeservice.repository.EmployeeRepository;
 import com.micky.employeeservice.service.contract.IEmployeeService;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -60,6 +62,7 @@ public class EmployeeServiceImpl implements IEmployeeService {
         return new ResponseEntity<>(resultData, HttpStatus.OK);
     }
 
+    @CircuitBreaker(name = "${spring.application.name}", fallbackMethod = "getDefaultDepartment")
     @Override
     public ResponseEntity<APIResponseDto> detail(Long id) {
         var employeeEntity = employeeRepository.findById(id);
@@ -88,6 +91,25 @@ public class EmployeeServiceImpl implements IEmployeeService {
         var departmentDtoResponse = apiClient
                 .getDepartmentByDepartmentCode(employeeEntity.get().getDepartmentCode())
                 .getBody();
+        var resultData = new APIResponseDto();
+        resultData.setEmployeeDto(employeeDtoResponse);
+        resultData.setDepartmentDto(departmentDtoResponse);
+
+        return new ResponseEntity<>(resultData, HttpStatus.OK);
+    }
+
+    public ResponseEntity<APIResponseDto> getDefaultDepartment(Long id, Exception exception) {
+        var employeeEntity = employeeRepository.findById(id);
+        if (employeeEntity.isEmpty()) {
+            throw new ResourceNotFoundException("employee", "id", Math.toIntExact(id));
+        }
+        var employeeDtoResponse = employeeMapper.employeeToEmployeeDto(employeeEntity.get());
+
+        var departmentDtoResponse = new DepartmentDto();
+        departmentDtoResponse.setDepartment("");
+        departmentDtoResponse.setDepartmentDescription("");
+        departmentDtoResponse.setDepartmentCode("");
+
         var resultData = new APIResponseDto();
         resultData.setEmployeeDto(employeeDtoResponse);
         resultData.setDepartmentDto(departmentDtoResponse);
