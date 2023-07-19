@@ -10,7 +10,10 @@ import com.micky.employeeservice.mapper.EmployeeMapper;
 import com.micky.employeeservice.repository.EmployeeRepository;
 import com.micky.employeeservice.service.contract.IEmployeeService;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -24,6 +27,8 @@ import java.util.stream.Collectors;
 @Service
 @AllArgsConstructor
 public class EmployeeServiceImpl implements IEmployeeService {
+
+    private static final Logger logger = LoggerFactory.getLogger(EmployeeServiceImpl.class);
 
     @Autowired
     private EmployeeRepository employeeRepository;
@@ -62,9 +67,11 @@ public class EmployeeServiceImpl implements IEmployeeService {
         return new ResponseEntity<>(resultData, HttpStatus.OK);
     }
 
-    @CircuitBreaker(name = "${spring.application.name}", fallbackMethod = "getDefaultDepartment")
+    //@CircuitBreaker(name = "${spring.application.name}", fallbackMethod = "getDefaultDepartment")
+    @Retry(name = "${spring.application.name}", fallbackMethod = "getDefaultDepartment")
     @Override
     public ResponseEntity<APIResponseDto> detail(Long id) {
+        logger.info("inside getEmployeeBydId() method");
         var employeeEntity = employeeRepository.findById(id);
         if (employeeEntity.isEmpty()) {
             throw new ResourceNotFoundException("employee", "id", Math.toIntExact(id));
@@ -99,6 +106,7 @@ public class EmployeeServiceImpl implements IEmployeeService {
     }
 
     public ResponseEntity<APIResponseDto> getDefaultDepartment(Long id, Exception exception) {
+        logger.info("inside getDefaultDepartment() method");
         var employeeEntity = employeeRepository.findById(id);
         if (employeeEntity.isEmpty()) {
             throw new ResourceNotFoundException("employee", "id", Math.toIntExact(id));
