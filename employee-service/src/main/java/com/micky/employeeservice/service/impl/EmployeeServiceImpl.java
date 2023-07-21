@@ -4,6 +4,7 @@ import com.micky.employeeservice.client.APIClient;
 import com.micky.employeeservice.dtos.APIResponseDto;
 import com.micky.employeeservice.dtos.DepartmentDto;
 import com.micky.employeeservice.dtos.EmployeeDto;
+import com.micky.employeeservice.dtos.OrganizationDto;
 import com.micky.employeeservice.exception.ExistingItemException;
 import com.micky.employeeservice.exception.ResourceNotFoundException;
 import com.micky.employeeservice.mapper.EmployeeMapper;
@@ -19,6 +20,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,9 +37,9 @@ public class EmployeeServiceImpl implements IEmployeeService {
 //    @Autowired
 //    private RestTemplate restTemplate;
 
-    //    @Autowired
-//    private WebClient webClient;
-    private APIClient apiClient;
+    @Autowired
+    private WebClient webClient;
+//    private APIClient apiClient;
     private EmployeeMapper employeeMapper = EmployeeMapper.INSTANCE;
 
     @Override
@@ -90,17 +92,24 @@ public class EmployeeServiceImpl implements IEmployeeService {
         /**
          * use webclient to call API from other service
          */
-//        var departmentDtoResponse = webClient.get()
-//                .uri("http://localhost:8080/department/detail/" + employeeEntity.get().getDepartmentCode())
-//                .retrieve()
-//                .bodyToMono(DepartmentDto.class)
-//                .block();
-        var departmentDtoResponse = apiClient
-                .getDepartmentByDepartmentCode(employeeEntity.get().getDepartmentCode())
-                .getBody();
+        var departmentDtoResponse = webClient.get()
+                .uri("http://localhost:8080/department/detail/" + employeeEntity.get().getDepartmentCode())
+                .retrieve()
+                .bodyToMono(DepartmentDto.class)
+                .block();
+
+        var organizationDtoResponse = webClient.get()
+                .uri("http://localhost:8083/organization/detail/" + employeeEntity.get().getOrganizationCode())
+                .retrieve()
+                .bodyToMono(OrganizationDto.class)
+                .block();
+//        var departmentDtoResponse = apiClient
+//                .getDepartmentByDepartmentCode(employeeEntity.get().getDepartmentCode())
+//                .getBody();
         var resultData = new APIResponseDto();
         resultData.setEmployeeDto(employeeDtoResponse);
         resultData.setDepartmentDto(departmentDtoResponse);
+        resultData.setOrganizationDto(organizationDtoResponse);
 
         return new ResponseEntity<>(resultData, HttpStatus.OK);
     }
